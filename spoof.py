@@ -1,6 +1,7 @@
 from netfilterqueue import NetfilterQueue
 from scapy.all import *
 import os
+import poison
 
 def parse(packet):
     pkt = IP(packet.get_payload())
